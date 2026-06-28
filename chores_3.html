@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Chores — George &amp; Emily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAEFE3;
+    --surface:#FFFFFF;
+    --surface-soft:#F3F6ED;
+    --ink:#20271E;
+    --ink-soft:#5C6552;
+    --ink-faint:#94997F;
+    --line:#DBE1CC;
+    --accent:#C99A2E;
+    --accent-soft:#F4E7C7;
+    --george:#3D6B8A;
+    --george-soft:#DCE8EE;
+    --emily:#A4527A;
+    --emily-soft:#F1DEE6;
+    --done:#6B8F71;
+    --done-soft:#E1ECDD;
+    --danger:#B5483D;
+    --radius:16px;
+    --radius-sm:10px;
+    --shadow:0 1px 2px rgba(32,39,30,0.06), 0 6px 16px rgba(32,39,30,0.06);
+    --font-display:'Bricolage Grotesque', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:radial-gradient(circle at 1px 1px, rgba(32,39,30,0.05) 1px, transparent 0);
+    background-size:22px 22px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  button{font-family:inherit;cursor:pointer;}
+  input,select{font-family:inherit;}
+
+  :focus-visible{
+    outline:2.5px solid var(--accent);
+    outline-offset:2px;
+    border-radius:6px;
+  }
+
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:640px;
+    margin:0 auto;
+    padding:20px 16px 120px;
+  }
+
+  /* ---------- Header ---------- */
+  header.top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:18px;
+    gap:12px;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    margin:0 0 4px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(26px,6vw,32px);
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .iconbtn{
+    width:40px;height:40px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--surface);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);
+    flex:none;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease, background .15s ease;
+  }
+  .iconbtn:hover{background:var(--surface-soft);}
+  .iconbtn:active{transform:scale(0.93);}
+
+  /* ---------- Split bar (signature element) ---------- */
+  .split{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:16px;
+    box-shadow:var(--shadow);
+  }
+  .split-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:10px;
+  }
+  .split-title{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .split-range{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+  .split-names{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:15px;
+    margin-bottom:8px;
+  }
+  .split-names .g{color:var(--george);}
+  .split-names .e{color:var(--emily);}
+  .split-track{
+    height:10px;
+    border-radius:999px;
+    background:var(--surface-soft);
+    overflow:hidden;
+    display:flex;
+    border:1px solid var(--line);
+  }
+  .split-track .fill-g{background:var(--george);height:100%;}
+  .split-track .fill-e{background:var(--emily);height:100%;}
+  .split-empty{
+    font-size:13px;
+    color:var(--ink-faint);
+    text-align:center;
+    padding:4px 0 2px;
+  }
+
+  /* ---------- Filter tabs ---------- */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .tab{
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-soft);
+    font-weight:600;
+    font-size:13.5px;
+    padding:8px 14px;
+    border-radius:999px;
+    transition:all .15s ease;
+  }
+  .tab[data-active="true"]{
+    border-color:transparent;
+    color:#fff;
+    background:var(--ink);
+  }
+  .tab[data-who="george"][data-active="true"]{background:var(--george);}
+  .tab[data-who="emily"][data-active="true"]{background:var(--emily);}
+
+  /* ---------- Sections ---------- */
+  .section{margin-bottom:26px;}
+  .section-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .section-head .label{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    white-space:nowrap;
+  }
+  .section-head .rule{
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .section-head .count{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    background:var(--surface-soft);
+    border:1px solid var(--line);
+    padding:2px 8px;
+    border-radius:999px;
+  }
+
+  .rows{display:flex;flex-direction:column;gap:8px;}
+
+  .row{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px 12px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:var(--shadow);
+    transition:opacity .2s ease;
+  }
+  .row[data-done="true"]{opacity:0.55;}
+
+  .check{
+    width:26px;height:26px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    background:var(--surface);
+    flex:none;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;
+    transition:all .15s ease;
+  }
+  .check[data-done="true"]{
+    background:var(--done);
+    border-color:var(--done);
+  }
+  .check svg{width:14px;height:14px;display:none;}
+  .check[data-done="true"] svg{display:block;}
+
+  .row .name{
+    flex:1;
+    min-width:0;
+    font-weight:600;
+    font-size:15px;
+    line-height:1.3;
+    text-align:left;
+    background:none;
+    border:none;
+    color:var(--ink);
+    padding:0;
+  }
+  .row[data-done="true"] .name{
+    text-decoration:line-through;
+    color:var(--ink-faint);
+  }
+
+  .badge{
+    font-family:var(--font-mono);
+    font-weight:600;
+    font-size:12.5px;
+    width:28px;height:28px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+    color:#fff;
+    border:none;
+  }
+  .badge.george{background:var(--george);}
+  .badge.emily{background:var(--emily);}
+
+  .editbtn{
+    width:28px;height:28px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    color:var(--ink-faint);
+    flex:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .editbtn:hover{background:var(--surface-soft);color:var(--ink-soft);}
+  .editbtn svg{width:15px;height:15px;}
+
+  .empty{
+    text-align:center;
+    padding:36px 20px;
+    color:var(--ink-faint);
+    font-size:14px;
+  }
+  .empty strong{display:block;color:var(--ink-soft);font-family:var(--font-display);font-size:17px;margin-bottom:4px;}
+
+  /* ---------- FAB ---------- */
+  .fab{
+    position:fixed;
+    right:20px;
+    bottom:24px;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    border-radius:999px;
+    padding:14px 20px;
+    font-weight:700;
+    font-size:14.5px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    box-shadow:0 6px 18px rgba(32,39,30,0.28);
+    z-index:5;
+    transition:transform .15s ease;
+  }
+  .fab:active{transform:scale(0.96);}
+  .fab svg{width:16px;height:16px;}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(32,39,30,0.45);
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:20;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease;
+  }
+  .overlay[data-open="true"]{opacity:1;pointer-events:auto;}
+  @media (min-width:560px){
+    .overlay{align-items:center;}
+  }
+
+  .modal{
+    background:var(--surface);
+    width:100%;
+    max-width:420px;
+    border-radius:20px 20px 0 0;
+    padding:22px 20px 28px;
+    transform:translateY(16px);
+    transition:transform .18s ease;
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  .overlay[data-open="true"] .modal{transform:translateY(0);}
+  @media (min-width:560px){
+    .modal{border-radius:20px;}
+  }
+
+  .modal h2{
+    font-family:var(--font-display);
+    font-size:20px;
+    margin:0 0 18px;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:7px;
+  }
+  .field input[type="text"]{
+    width:100%;
+    padding:11px 13px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-sm);
+    font-size:15px;
+    background:var(--surface-soft);
+    color:var(--ink);
+  }
+  .field input[type="text"]:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:var(--surface);
+  }
+
+  .segmented{
+    display:flex;
+    gap:8px;
+  }
+  .seg{
+    flex:1;
+    padding:10px 8px;
+    border-radius:var(--radius-sm);
+    border:1.5px solid var(--line);
+    background:var(--surface-soft);
+    color:var(--ink-soft);
+    font-weight:600;
+    font-size:13.5px;
+    text-align:center;
+    transition:all .15s ease;
+  }
+  .seg[data-active="true"]{color:#fff;border-color:transparent;}
+  .seg[data-val="daily"][data-active="true"],
+  .seg[data-val="weekly"][data-active="true"],
+  .seg[data-val="monthly"][data-active="true"]{background:var(--ink);}
+  .seg[data-val="george"][data-active="true"]{background:var(--george);}
+  .seg[data-val="emily"][data-active="true"]{background:var(--emily);}
+
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:8px;
+  }
+  .btn{
+    flex:1;
+    padding:12px 14px;
+    border-radius:999px;
+    border:none;
+    font-weight:700;
+    font-size:14.5px;
+  }
+  .btn.primary{background:var(--ink);color:#fff;}
+  .btn.ghost{background:var(--surface-soft);color:var(--ink-soft);border:1.5px solid var(--line);}
+  .remove-link{
+    display:block;
+    text-align:center;
+    margin-top:16px;
+    color:var(--danger);
+    font-weight:600;
+    font-size:13.5px;
+    background:none;
+    border:none;
+    padding:8px;
+  }
+
+  /* ---------- Banner ---------- */
+  .banner{
+    background:var(--accent-soft);
+    border:1px solid var(--accent);
+    color:#7A5A14;
+    font-size:13px;
+    border-radius:var(--radius-sm);
+    padding:10px 14px;
+    margin-bottom:16px;
+    display:none;
+  }
+  .banner[data-show="true"]{display:block;}
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">George + Emily</p>
+      <h1>Chores</h1>
+    </div>
+    <button class="iconbtn" id="settingsBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
+  </header>
+
+  <div class="banner" id="storageBanner"></div>
+
+  <div class="split">
+    <div class="split-head">
+      <span class="split-title">This week's split</span>
+      <span class="split-range" id="weekRange"></span>
+    </div>
+    <div class="split-names">
+      <span class="g" id="georgeCount">George — 0</span>
+      <span class="e" id="emilyCount">Emily — 0</span>
+    </div>
+    <div class="split-track" id="splitTrack">
+      <div class="fill-g" style="width:50%"></div>
+      <div class="fill-e" style="width:50%"></div>
+    </div>
+    <p class="split-empty hidden" id="splitEmpty">Nobody's checked anything off yet this week.</p>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" data-who="all" data-active="true" role="tab">All</button>
+    <button class="tab" data-who="george" data-active="false" role="tab">George</button>
+    <button class="tab" data-who="emily" data-active="false" role="tab">Emily</button>
+  </div>
+
+  <main id="sections"></main>
+</div>
+
+<button class="fab" id="addBtn" aria-label="Add chore">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+  <span>Add chore</span>
+</button>
+
+<!-- Add/Edit modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Add a chore</h2>
+    <form id="choreForm">
+      <div class="field">
+        <label for="choreName">Chore name</label>
+        <input type="text" id="choreName" maxlength="60" placeholder="e.g. Take out the trash" required>
+      </div>
+      <div class="field">
+        <label>How often</label>
+        <div class="segmented" id="freqSeg">
+          <button type="button" class="seg" data-val="daily" data-active="true">Daily</button>
+          <button type="button" class="seg" data-val="weekly" data-active="false">Weekly</button>
+          <button type="button" class="seg" data-val="monthly" data-active="false">Monthly</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Assigned to</label>
+        <div class="segmented" id="whoSeg">
+          <button type="button" class="seg" data-val="george" data-active="true">George</button>
+          <button type="button" class="seg" data-val="emily" data-active="false">Emily</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn primary" id="saveBtn">Add chore</button>
+      </div>
+      <button type="button" class="remove-link hidden" id="removeBtn">Remove this chore</button>
+    </form>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <h2 id="settingsTitle">Settings</h2>
+    <p style="color:var(--ink-soft);font-size:13.5px;margin-top:-8px;margin-bottom:18px;" id="settingsCopy">This list syncs live between every device once your shared database is connected. If it isn't connected, it's only saved in this browser.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="closeSettingsBtn">Close</button>
+      <button type="button" class="btn primary" id="resetBtn" style="background:var(--danger);">Clear all chores</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set as fbSet } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* =======================================================================
+   SHARED BACKEND SETUP — fill this in once you've created a Firebase
+   project (see the setup steps Claude gave you). Until you do, the app
+   keeps working fine on localStorage, just without cross-device sync.
+   ======================================================================= */
+var firebaseConfig = {
+  apiKey: "AIzaSyBI7mFUF9OO8qhgHq4hAsvIZzUhK4aaScw",
+  authDomain: "chores-3f08b.firebaseapp.com",
+  databaseURL: "https://chores-3f08b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "chores-3f08b",
+  storageBucket: "chores-3f08b.firebasestorage.app",
+  messagingSenderId: "904093207379",
+  appId: "1:904093207379:web:762a4d76c0672369862fa6"
+};
+
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "chores";
+  var storageOK = true;
+  var usingFirebase = false;
+  var fbChoresRef = null;
+  var chores = [];
+  var filter = "all";
+  var editingId = null;
+
+  var els = {
+    sections: document.getElementById("sections"),
+    overlay: document.getElementById("overlay"),
+    settingsOverlay: document.getElementById("settingsOverlay"),
+    form: document.getElementById("choreForm"),
+    nameInput: document.getElementById("choreName"),
+    freqSeg: document.getElementById("freqSeg"),
+    whoSeg: document.getElementById("whoSeg"),
+    modalTitle: document.getElementById("modalTitle"),
+    saveBtn: document.getElementById("saveBtn"),
+    removeBtn: document.getElementById("removeBtn"),
+    banner: document.getElementById("storageBanner"),
+    georgeCount: document.getElementById("georgeCount"),
+    emilyCount: document.getElementById("emilyCount"),
+    splitTrack: document.getElementById("splitTrack"),
+    splitEmpty: document.getElementById("splitEmpty"),
+    weekRange: document.getElementById("weekRange")
+  };
+
+  function uid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+  }
+
+  function defaultChores(){
+    return [
+      mk("Wash the dishes", "daily", "emily"),
+      mk("Tidy the living room", "daily", "george"),
+      mk("Take out the trash", "weekly", "george"),
+      mk("Vacuum the house", "weekly", "emily"),
+      mk("Grocery shopping", "weekly", "emily"),
+      mk("Clean the bathroom", "weekly", "george"),
+      mk("Change the bed sheets", "monthly", "george"),
+      mk("Pay bills / household admin", "monthly", "emily")
+    ];
+  }
+  function mk(name, freq, who){
+    return { id: uid(), name: name, frequency: freq, assignedTo: who, history: [] };
+  }
+
+  /* ---------- date helpers ---------- */
+  function startOfDay(d){ var x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function mondayOf(d){
+    var x = startOfDay(d);
+    var day = x.getDay(); // 0 sun .. 6 sat
+    var diff = (day === 0 ? -6 : 1 - day);
+    x.setDate(x.getDate() + diff);
+    return x;
+  }
+  function isSameDay(a,b){ return startOfDay(a).getTime() === startOfDay(b).getTime(); }
+  function isSameWeek(a,b){ return mondayOf(a).getTime() === mondayOf(b).getTime(); }
+  function isSameMonth(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth(); }
+
+  function isDoneForCurrentPeriod(chore){
+    var now = new Date();
+    return chore.history.some(function(ts){
+      var d = new Date(ts);
+      if (chore.frequency === "daily") return isSameDay(d, now);
+      if (chore.frequency === "weekly") return isSameWeek(d, now);
+      return isSameMonth(d, now);
+    });
+  }
+
+  function toggleDone(chore){
+    var now = new Date();
+    if (isDoneForCurrentPeriod(chore)){
+      chore.history = chore.history.filter(function(ts){
+        var d = new Date(ts);
+        if (chore.frequency === "daily") return !isSameDay(d, now);
+        if (chore.frequency === "weekly") return !isSameWeek(d, now);
+        return !isSameMonth(d, now);
+      });
+    } else {
+      chore.history.push(now.toISOString());
+    }
+    persist();
+    render();
+  }
+
+  function weekRangeLabel(){
+    var mon = mondayOf(new Date());
+    var sun = new Date(mon); sun.setDate(sun.getDate()+6);
+    var opts = { month: "short", day: "numeric" };
+    return mon.toLocaleDateString(undefined, opts) + "–" + sun.toLocaleDateString(undefined, opts);
+  }
+
+  function computeSplit(){
+    var mon = mondayOf(new Date());
+    var nextMon = new Date(mon); nextMon.setDate(nextMon.getDate()+7);
+    var counts = { george: 0, emily: 0 };
+    chores.forEach(function(c){
+      c.history.forEach(function(ts){
+        var d = new Date(ts);
+        if (d >= mon && d < nextMon){
+          counts[c.assignedTo] = (counts[c.assignedTo]||0) + 1;
+        }
+      });
+    });
+    return counts;
+  }
+
+  /* ---------- storage ----------
+     Tries Firebase Realtime Database first (shared, live-synced across
+     devices). Falls back to localStorage on this browser only if Firebase
+     isn't configured yet or fails to connect. */
+
+  function isFirebaseConfigured(){
+    return firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("PASTE_") !== 0;
+  }
+
+  function loadFromLocalStorage(){
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw){
+        var parsed = JSON.parse(raw);
+        chores = Array.isArray(parsed) ? parsed : defaultChores();
+      } else {
+        chores = defaultChores();
+        persistToLocalStorage();
+      }
+      chores.forEach(function(c){ if (!Array.isArray(c.history)) c.history = []; });
+    } catch(e){
+      storageOK = false;
+      els.banner.textContent = "This browser is blocking local storage (e.g. private browsing) — changes won't be saved once you close the tab.";
+      els.banner.setAttribute("data-show","true");
+      chores = defaultChores();
+    }
+    render();
+  }
+
+  function persistToLocalStorage(){
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(chores));
+    } catch(e){
+      storageOK = false;
+      els.banner.textContent = "Couldn't save — your last change may not stick around.";
+      els.banner.setAttribute("data-show","true");
+    }
+  }
+
+  function load(){
+    if (!isFirebaseConfigured()){
+      els.banner.textContent = "Shared sync isn't set up yet (paste your Firebase config into the file) — saving to this browser only for now.";
+      els.banner.setAttribute("data-show","true");
+      loadFromLocalStorage();
+      return;
+    }
+    try {
+      var app = initializeApp(firebaseConfig);
+      var db = getDatabase(app);
+      fbChoresRef = ref(db, "chores");
+      usingFirebase = true;
+      onValue(fbChoresRef, function(snapshot){
+        var val = snapshot.val();
+        if (val === null){
+          chores = defaultChores();
+          persist();
+        } else {
+          chores = Array.isArray(val) ? val : Object.values(val);
+          chores.forEach(function(c){ if (!Array.isArray(c.history)) c.history = []; });
+        }
+        els.banner.removeAttribute("data-show");
+        render();
+      }, function(){
+        usingFirebase = false;
+        els.banner.textContent = "Couldn't reach the shared database — check your Firebase config and rules. Saving to this browser only for now.";
+        els.banner.setAttribute("data-show","true");
+        loadFromLocalStorage();
+      });
+    } catch(e){
+      usingFirebase = false;
+      els.banner.textContent = "Couldn't reach the shared database — check your Firebase config and rules. Saving to this browser only for now.";
+      els.banner.setAttribute("data-show","true");
+      loadFromLocalStorage();
+    }
+  }
+
+  function persist(){
+    if (usingFirebase && fbChoresRef){
+      fbSet(fbChoresRef, chores).catch(function(){
+        usingFirebase = false;
+        els.banner.textContent = "Couldn't save to the shared database — check your connection. Saving to this browser only for now.";
+        els.banner.setAttribute("data-show","true");
+        persistToLocalStorage();
+      });
+      return;
+    }
+    persistToLocalStorage();
+  }
+
+  /* ---------- rendering ---------- */
+  function icon(name){
+    var icons = {
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+      pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>'
+    };
+    return icons[name] || "";
+  }
+
+  function rowHTML(chore){
+    var done = isDoneForCurrentPeriod(chore);
+    var who = chore.assignedTo;
+    var initial = who === "george" ? "G" : "E";
+    return (
+      '<div class="row" data-done="'+done+'" data-id="'+chore.id+'">' +
+        '<button class="check" data-done="'+done+'" data-action="toggle" data-id="'+chore.id+'" aria-label="Mark done">'+icon("check")+'</button>' +
+        '<button class="name" data-action="edit" data-id="'+chore.id+'">'+escapeHTML(chore.name)+'</button>' +
+        '<button class="badge '+who+'" data-action="swap" data-id="'+chore.id+'" aria-label="Reassign" title="Tap to reassign">'+initial+'</button>' +
+        '<button class="editbtn" data-action="edit" data-id="'+chore.id+'" aria-label="Edit chore">'+icon("pencil")+'</button>' +
+      '</div>'
+    );
+  }
+
+  function escapeHTML(s){
+    var d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function sectionHTML(label, freq, list){
+    var undone = list.filter(function(c){ return !isDoneForCurrentPeriod(c); }).length;
+    if (list.length === 0) return "";
+    return (
+      '<section class="section">' +
+        '<div class="section-head">' +
+          '<span class="label">'+label+'</span>' +
+          '<span class="rule"></span>' +
+          '<span class="count">'+undone+' left</span>' +
+        '</div>' +
+        '<div class="rows">' + list.map(rowHTML).join("") + '</div>' +
+      '</section>'
+    );
+  }
+
+  function render(){
+    var visible = chores.filter(function(c){ return filter === "all" || c.assignedTo === filter; });
+
+    if (chores.length === 0){
+      els.sections.innerHTML = '<div class="empty"><strong>No chores yet</strong>Tap "Add chore" below to start your list.</div>';
+    } else if (visible.length === 0){
+      els.sections.innerHTML = '<div class="empty"><strong>Nothing here</strong>No chores assigned to this person yet.</div>';
+    } else {
+      var daily = visible.filter(function(c){ return c.frequency === "daily"; });
+      var weekly = visible.filter(function(c){ return c.frequency === "weekly"; });
+      var monthly = visible.filter(function(c){ return c.frequency === "monthly"; });
+      els.sections.innerHTML =
+        sectionHTML("Today", "daily", daily) +
+        sectionHTML("This week", "weekly", weekly) +
+        sectionHTML("This month", "monthly", monthly);
+    }
+
+    // split bar
+    els.weekRange.textContent = weekRangeLabel();
+    var counts = computeSplit();
+    var total = counts.george + counts.emily;
+    els.georgeCount.textContent = "George — " + counts.george;
+    els.emilyCount.textContent = "Emily — " + counts.emily;
+    if (total === 0){
+      els.splitTrack.style.visibility = "hidden";
+      els.splitEmpty.classList.remove("hidden");
+    } else {
+      els.splitTrack.style.visibility = "visible";
+      els.splitEmpty.classList.add("hidden");
+      var gPct = Math.round((counts.george/total)*100);
+      els.splitTrack.children[0].style.width = gPct + "%";
+      els.splitTrack.children[1].style.width = (100-gPct) + "%";
+    }
+
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.setAttribute("data-active", t.getAttribute("data-who") === filter ? "true" : "false");
+    });
+  }
+
+  /* ---------- modal ---------- */
+  function openModal(chore){
+    editingId = chore ? chore.id : null;
+    els.modalTitle.textContent = chore ? "Edit chore" : "Add a chore";
+    els.saveBtn.textContent = chore ? "Save changes" : "Add chore";
+    els.removeBtn.classList.toggle("hidden", !chore);
+    els.nameInput.value = chore ? chore.name : "";
+    setSeg(els.freqSeg, chore ? chore.frequency : "daily");
+    setSeg(els.whoSeg, chore ? chore.assignedTo : "george");
+    els.overlay.setAttribute("data-open","true");
+    setTimeout(function(){ els.nameInput.focus(); }, 50);
+  }
+  function closeModal(){
+    els.overlay.removeAttribute("data-open");
+    editingId = null;
+  }
+  function setSeg(container, val){
+    container.querySelectorAll(".seg").forEach(function(b){
+      b.setAttribute("data-active", b.getAttribute("data-val") === val ? "true" : "false");
+    });
+  }
+  function getSeg(container){
+    var active = container.querySelector('.seg[data-active="true"]');
+    return active ? active.getAttribute("data-val") : null;
+  }
+
+  /* ---------- events ---------- */
+  document.getElementById("addBtn").addEventListener("click", function(){ openModal(null); });
+  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  els.overlay.addEventListener("click", function(e){ if (e.target === els.overlay) closeModal(); });
+
+  els.freqSeg.addEventListener("click", function(e){
+    var b = e.target.closest(".seg");
+    if (b) setSeg(els.freqSeg, b.getAttribute("data-val"));
+  });
+  els.whoSeg.addEventListener("click", function(e){
+    var b = e.target.closest(".seg");
+    if (b) setSeg(els.whoSeg, b.getAttribute("data-val"));
+  });
+
+  els.form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = els.nameInput.value.trim();
+    if (!name) return;
+    var freq = getSeg(els.freqSeg);
+    var who = getSeg(els.whoSeg);
+    if (editingId){
+      var c = chores.find(function(x){ return x.id === editingId; });
+      if (c){ c.name = name; c.frequency = freq; c.assignedTo = who; }
+    } else {
+      chores.push(mk(name, freq, who));
+    }
+    persist();
+    closeModal();
+    render();
+  });
+
+  els.removeBtn.addEventListener("click", function(){
+    if (!editingId) return;
+    if (window.confirm("Remove this chore for good?")){
+      chores = chores.filter(function(c){ return c.id !== editingId; });
+      persist();
+      closeModal();
+      render();
+    }
+  });
+
+  els.sections.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    var id = btn.getAttribute("data-id");
+    var chore = chores.find(function(c){ return c.id === id; });
+    if (!chore) return;
+    var action = btn.getAttribute("data-action");
+    if (action === "toggle") toggleDone(chore);
+    else if (action === "edit") openModal(chore);
+    else if (action === "swap"){
+      chore.assignedTo = chore.assignedTo === "george" ? "emily" : "george";
+      persist();
+      render();
+    }
+  });
+
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.addEventListener("click", function(){
+      filter = t.getAttribute("data-who");
+      render();
+    });
+  });
+
+  document.getElementById("settingsBtn").addEventListener("click", function(){
+    els.settingsOverlay.setAttribute("data-open","true");
+  });
+  document.getElementById("closeSettingsBtn").addEventListener("click", function(){
+    els.settingsOverlay.removeAttribute("data-open");
+  });
+  els.settingsOverlay.addEventListener("click", function(e){
+    if (e.target === els.settingsOverlay) els.settingsOverlay.removeAttribute("data-open");
+  });
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if (window.confirm("This clears every chore for both of you. Are you sure?")){
+      chores = [];
+      persist();
+      els.settingsOverlay.removeAttribute("data-open");
+      render();
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape"){
+      closeModal();
+      els.settingsOverlay.removeAttribute("data-open");
+    }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
