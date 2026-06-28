@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>Chores — George &amp; Emily</title>
+<title>Cleaning Rota — George &amp; Emily</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -217,6 +217,58 @@
 
   .rows{display:flex;flex-direction:column;gap:8px;}
 
+  /* ---------- Day groups (weekly rota, Mon-Sun) ---------- */
+  .day-group{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--surface-soft);
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .day-group[open]{background:transparent;}
+  .day-summary{
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:13px 14px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .day-summary::-webkit-details-marker{display:none;}
+  .day-summary .chevron{
+    flex:none;
+    width:18px;height:18px;
+    color:var(--ink-faint);
+    transition:transform .15s ease;
+  }
+  .day-group[open] .chevron{transform:rotate(90deg);}
+  .day-summary .day-text{flex:1;min-width:0;}
+  .day-summary .day-name{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:15.5px;
+    display:block;
+  }
+  .day-summary .day-name.is-today{color:var(--accent);}
+  .day-summary .day-theme{
+    font-size:12.5px;
+    color:var(--ink-faint);
+  }
+  .day-summary .count{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    background:var(--surface);
+    border:1px solid var(--line);
+    padding:2px 8px;
+    border-radius:999px;
+    flex:none;
+  }
+  .day-body{
+    padding:0 12px 12px;
+  }
+
   .row{
     background:var(--surface);
     border:1px solid var(--line);
@@ -382,6 +434,21 @@
     border-color:var(--accent);
     background:var(--surface);
   }
+  .field select{
+    width:100%;
+    padding:11px 13px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-sm);
+    font-size:15px;
+    background:var(--surface-soft);
+    color:var(--ink);
+    font-weight:600;
+  }
+  .field select:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:var(--surface);
+  }
 
   .segmented{
     display:flex;
@@ -455,7 +522,7 @@
   <header class="top">
     <div>
       <p class="eyebrow">George + Emily</p>
-      <h1>Chores</h1>
+      <h1>Cleaning Rota</h1>
     </div>
     <button class="iconbtn" id="settingsBtn" aria-label="Settings">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -511,6 +578,10 @@
           <button type="button" class="seg" data-val="monthly" data-active="false">Monthly</button>
         </div>
       </div>
+      <div class="field hidden" id="dayField">
+        <label for="choreDay">Which day</label>
+        <select id="choreDay"></select>
+      </div>
       <div class="field">
         <label>Assigned to</label>
         <div class="segmented" id="whoSeg">
@@ -534,7 +605,7 @@
     <p style="color:var(--ink-soft);font-size:13.5px;margin-top:-8px;margin-bottom:18px;" id="settingsCopy">This list syncs live between every device once your shared database is connected. If it isn't connected, it's only saved in this browser.</p>
     <div class="modal-actions">
       <button type="button" class="btn ghost" id="closeSettingsBtn">Close</button>
-      <button type="button" class="btn primary" id="resetBtn" style="background:var(--danger);">Clear all chores</button>
+      <button type="button" class="btn primary" id="resetBtn" style="background:var(--danger);">Reload the rota</button>
     </div>
   </div>
 </div>
@@ -577,6 +648,8 @@ var firebaseConfig = {
     nameInput: document.getElementById("choreName"),
     freqSeg: document.getElementById("freqSeg"),
     whoSeg: document.getElementById("whoSeg"),
+    dayField: document.getElementById("dayField"),
+    daySelect: document.getElementById("choreDay"),
     modalTitle: document.getElementById("modalTitle"),
     saveBtn: document.getElementById("saveBtn"),
     removeBtn: document.getElementById("removeBtn"),
@@ -593,21 +666,97 @@ var firebaseConfig = {
     return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
   }
 
+  var DAY_META = [
+    { key:"monday",    label:"Monday",    theme:"Bedroom" },
+    { key:"tuesday",   label:"Tuesday",   theme:"Bathroom" },
+    { key:"wednesday", label:"Wednesday", theme:"Charlie's Room, Office & Hallway" },
+    { key:"thursday",  label:"Thursday",  theme:"Living Room" },
+    { key:"friday",    label:"Friday",    theme:"Utility Area & Kitchen" },
+    { key:"saturday",  label:"Saturday",  theme:"General / Deep Clean" },
+    { key:"sunday",    label:"Sunday",    theme:"Prep For The Week" }
+  ];
+
+  function getDayMeta(key){
+    for (var i=0;i<DAY_META.length;i++) if (DAY_META[i].key === key) return DAY_META[i];
+    return DAY_META[0];
+  }
+
+  function todayDayKey(){
+    var map = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+    return map[new Date().getDay()];
+  }
+
   function defaultChores(){
-    return [
-      mk("Wash the dishes", "daily", "emily"),
-      mk("Tidy the living room", "daily", "george"),
-      mk("Take out the trash", "weekly", "george"),
-      mk("Vacuum the house", "weekly", "emily"),
-      mk("Grocery shopping", "weekly", "emily"),
-      mk("Clean the bathroom", "weekly", "george"),
-      mk("Change the bed sheets", "monthly", "george"),
-      mk("Pay bills / household admin", "monthly", "emily")
-    ];
+    var list = [];
+
+    // Daily — resets at the end of each day
+    [
+      ["Washing up / dishwasher","george"],
+      ["Wipe kitchen sides, sink and hob","emily"],
+      ["Put away Charlie's toys","george"],
+      ["Check garden","emily"],
+      ["Empty bins when full","george"]
+    ].forEach(function(t){ list.push(mk(t[0], "daily", t[1], null)); });
+
+    // Weekly — one themed day at a time
+    var week = {
+      monday: { who:"george", tasks:[
+        "Wash bedsheets","Make bed","Hoover","Tidy drawers/wardrobes",
+        "Clear and wipe chest of drawers and bedside tables","Clean mirror","Clean windows"
+      ]},
+      tuesday: { who:"emily", tasks:[
+        "Clean Charlie's bath mat","Clean bath","Tidy and wipe windowsill","Clean toilet",
+        "Clean sink","Change bath mat and hand towel","Tidy and wipe cupboard","Clean mirror",
+        "Clean window","Empty bin","Mop floor"
+      ]},
+      wednesday: { who:"george", tasks:[
+        "Tidy both rooms","Wipe windowsills","Take Charlie's bin out","Change Charlie's bedsheet",
+        "Change mum's bedsheets","Hoover both rooms and hallway","Clean windows","Clean mirrors",
+        "Sort Charlie's toys if needed"
+      ]},
+      thursday: { who:"emily", tasks:[
+        "Hoover/mop floor","Clean windowsill","Dust","Wash sofa blankets","Wipe coffee table",
+        "Clean bookshelf doors","Clean windows","Go through Charlie's toys if needed"
+      ]},
+      friday: { who:"george", tasks:[
+        "Hoover and mop","Clean toilet and sink","Organise and clean pantry cupboard",
+        "Clean bathroom mirror","Clean windows","Wipe windowsills","Clean island","Clean kitchen"
+      ]},
+      saturday: { who:"emily", tasks:[
+        "Food shop and clean fridge","Water plants","Washing"
+      ]},
+      sunday: { who:"george", tasks:[
+        "Meal prep"
+      ]}
+    };
+    DAY_META.forEach(function(d){
+      week[d.key].tasks.forEach(function(name){
+        list.push(mk(name, "weekly", week[d.key].who, d.key));
+      });
+    });
+
+    // Monthly — deep clean
+    [
+      ["Spyros viv","george"],
+      ["Clean kitchen cupboards","emily"],
+      ["Clean microwave","george"],
+      ["Clean oven","emily"],
+      ["Clean skirting boards","george"],
+      ["Clean cars","emily"],
+      ["Dust light fittings","george"],
+      ["Organise cupboards","emily"],
+      ["Clean extractor fan","george"],
+      ["Wipe all light switches","emily"]
+    ].forEach(function(t){ list.push(mk(t[0], "monthly", t[1], null)); });
+
+    return list;
   }
-  function mk(name, freq, who){
-    return { id: uid(), name: name, frequency: freq, assignedTo: who, history: [] };
+  function mk(name, freq, who, day){
+    return { id: uid(), name: name, frequency: freq, assignedTo: who, day: day || null, history: [] };
   }
+
+  var expandedDays = new Set([todayDayKey()]);
+
 
   /* ---------- date helpers ---------- */
   function startOfDay(d){ var x = new Date(d); x.setHours(0,0,0,0); return x; }
@@ -763,7 +912,8 @@ var firebaseConfig = {
   function icon(name){
     var icons = {
       check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
-      pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>'
+      pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+      chevron: '<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>'
     };
     return icons[name] || "";
   }
@@ -788,9 +938,9 @@ var firebaseConfig = {
     return d.innerHTML;
   }
 
-  function sectionHTML(label, freq, list){
-    var undone = list.filter(function(c){ return !isDoneForCurrentPeriod(c); }).length;
+  function sectionHTML(label, sub, list){
     if (list.length === 0) return "";
+    var undone = list.filter(function(c){ return !isDoneForCurrentPeriod(c); }).length;
     return (
       '<section class="section">' +
         '<div class="section-head">' +
@@ -798,8 +948,28 @@ var firebaseConfig = {
           '<span class="rule"></span>' +
           '<span class="count">'+undone+' left</span>' +
         '</div>' +
+        (sub ? '<p style="margin:-6px 0 10px;font-size:12.5px;color:var(--ink-faint);">'+sub+'</p>' : '') +
         '<div class="rows">' + list.map(rowHTML).join("") + '</div>' +
       '</section>'
+    );
+  }
+
+  function dayGroupHTML(meta, list, isToday){
+    if (list.length === 0) return "";
+    var undone = list.filter(function(c){ return !isDoneForCurrentPeriod(c); }).length;
+    var open = expandedDays.has(meta.key);
+    return (
+      '<details class="day-group" data-day="'+meta.key+'"'+(open ? ' open' : '')+'>' +
+        '<summary class="day-summary">' +
+          icon("chevron") +
+          '<span class="day-text">' +
+            '<span class="day-name'+(isToday ? ' is-today' : '')+'">'+meta.label+(isToday ? ' · Today' : '')+'</span>' +
+            '<span class="day-theme">'+escapeHTML(meta.theme)+'</span>' +
+          '</span>' +
+          '<span class="count">'+undone+' left</span>' +
+        '</summary>' +
+        '<div class="day-body"><div class="rows">' + list.map(rowHTML).join("") + '</div></div>' +
+      '</details>'
     );
   }
 
@@ -814,10 +984,30 @@ var firebaseConfig = {
       var daily = visible.filter(function(c){ return c.frequency === "daily"; });
       var weekly = visible.filter(function(c){ return c.frequency === "weekly"; });
       var monthly = visible.filter(function(c){ return c.frequency === "monthly"; });
+      var today = todayDayKey();
+
+      var weekHTML = '';
+      if (weekly.length){
+        weekHTML += '<section class="section"><div class="section-head"><span class="label">This week</span><span class="rule"></span></div>';
+        DAY_META.forEach(function(meta){
+          var dayList = weekly.filter(function(c){ return c.day === meta.key; });
+          weekHTML += dayGroupHTML(meta, dayList, meta.key === today);
+        });
+        weekHTML += '</section>';
+      }
+
       els.sections.innerHTML =
-        sectionHTML("Today", "daily", daily) +
-        sectionHTML("This week", "weekly", weekly) +
-        sectionHTML("This month", "monthly", monthly);
+        sectionHTML("Daily", "Resets at the end of each day", daily) +
+        weekHTML +
+        sectionHTML("Monthly deep clean", null, monthly);
+
+      els.sections.querySelectorAll("details[data-day]").forEach(function(d){
+        d.addEventListener("toggle", function(){
+          var key = d.getAttribute("data-day");
+          if (d.open) expandedDays.add(key);
+          else expandedDays.delete(key);
+        });
+      });
     }
 
     // split bar
@@ -843,6 +1033,15 @@ var firebaseConfig = {
   }
 
   /* ---------- modal ---------- */
+  function populateDaySelect(){
+    els.daySelect.innerHTML = DAY_META.map(function(d){
+      return '<option value="'+d.key+'">'+d.label+' — '+escapeHTML(d.theme)+'</option>';
+    }).join("");
+  }
+  function syncDayFieldVisibility(){
+    els.dayField.classList.toggle("hidden", getSeg(els.freqSeg) !== "weekly");
+  }
+
   function openModal(chore){
     editingId = chore ? chore.id : null;
     els.modalTitle.textContent = chore ? "Edit chore" : "Add a chore";
@@ -851,6 +1050,8 @@ var firebaseConfig = {
     els.nameInput.value = chore ? chore.name : "";
     setSeg(els.freqSeg, chore ? chore.frequency : "daily");
     setSeg(els.whoSeg, chore ? chore.assignedTo : "george");
+    els.daySelect.value = chore && chore.day ? chore.day : todayDayKey();
+    syncDayFieldVisibility();
     els.overlay.setAttribute("data-open","true");
     setTimeout(function(){ els.nameInput.focus(); }, 50);
   }
@@ -869,13 +1070,14 @@ var firebaseConfig = {
   }
 
   /* ---------- events ---------- */
+  populateDaySelect();
   document.getElementById("addBtn").addEventListener("click", function(){ openModal(null); });
   document.getElementById("cancelBtn").addEventListener("click", closeModal);
   els.overlay.addEventListener("click", function(e){ if (e.target === els.overlay) closeModal(); });
 
   els.freqSeg.addEventListener("click", function(e){
     var b = e.target.closest(".seg");
-    if (b) setSeg(els.freqSeg, b.getAttribute("data-val"));
+    if (b){ setSeg(els.freqSeg, b.getAttribute("data-val")); syncDayFieldVisibility(); }
   });
   els.whoSeg.addEventListener("click", function(e){
     var b = e.target.closest(".seg");
@@ -888,11 +1090,12 @@ var firebaseConfig = {
     if (!name) return;
     var freq = getSeg(els.freqSeg);
     var who = getSeg(els.whoSeg);
+    var day = freq === "weekly" ? els.daySelect.value : null;
     if (editingId){
       var c = chores.find(function(x){ return x.id === editingId; });
-      if (c){ c.name = name; c.frequency = freq; c.assignedTo = who; }
+      if (c){ c.name = name; c.frequency = freq; c.assignedTo = who; c.day = day; }
     } else {
-      chores.push(mk(name, freq, who));
+      chores.push(mk(name, freq, who, day));
     }
     persist();
     closeModal();
@@ -942,8 +1145,9 @@ var firebaseConfig = {
     if (e.target === els.settingsOverlay) els.settingsOverlay.removeAttribute("data-open");
   });
   document.getElementById("resetBtn").addEventListener("click", function(){
-    if (window.confirm("This clears every chore for both of you. Are you sure?")){
-      chores = [];
+    if (window.confirm("This replaces your current list with the starter cleaning rota for both of you. Are you sure?")){
+      chores = defaultChores();
+      expandedDays = new Set([todayDayKey()]);
       persist();
       els.settingsOverlay.removeAttribute("data-open");
       render();
